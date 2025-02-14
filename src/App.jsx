@@ -111,7 +111,7 @@ function App() {
             </a>
             <h1>
               Seamlessly Find <span className="text-gradient">Movies</span> That
-              Match Your vibes
+              Match Your Vibes
             </h1>
             <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
           </header>
