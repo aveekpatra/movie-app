@@ -19,7 +19,7 @@ function MovieCard({
         <div className="content">
           <div className="rating">
             <img src="star.svg" alt="Star icon" />
-            <p>{vote_average ? vote_average.toFixed(1) : N / A}</p>
+            <p>{vote_average ? vote_average.toFixed(1) : "N/A"}</p>
           </div>
           <span>&#8226;</span>
           <span className="font-bold uppercase">{original_language}</span>
