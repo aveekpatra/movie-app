@@ -97,50 +97,52 @@ function App() {
 
   return (
     <>
-      <div className="pattern"></div>
+      <div class="absolute inset-0 -z-10 h-full w-full items-center px-5 py-24 [background:radial-gradient(125%_125%_at_50%_10%,#000_40%,#63e_100%)]">
+        {/* <div className="pattern"></div> */}
 
-      <div className="wrapper">
-        <header>
-          <img src="./hero.png" alt="Hero Banner" className="max-w-2xs" />
-          <h1>
-            Find <span className="text-gradient">Movies</span> You'll Enjoy
-            Without the Hassle
-          </h1>
-          <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-        </header>
+        <div className="wrapper">
+          <header>
+            {/* <img src="./hero.png" alt="Hero Banner" className="max-w-2xs" /> */}
+            <h1>
+              Seamlessly Find <span className="text-gradient">Movies</span> That
+              Match Your Taste
+            </h1>
+            <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+          </header>
 
-        {trendingMovies.length > 0 && (
-          <section className="trending">
-            <h2>Trending Movies</h2>
+          <section className="all-movies mt-5">
+            <h2>All Movies</h2>
 
-            <ul>
-              {trendingMovies.map((movie, index) => (
-                <li key={movie.$id}>
-                  <p>{index + 1}</p>
-                  <img src={movie.poster_url} alt={movie.title} />
-                </li>
-              ))}
-            </ul>
+            {isLoading ? (
+              <p className="text-white animate-pulse text-xl text-center">
+                Loading...
+              </p>
+            ) : errorMessage ? (
+              <p className="text-red-500">{errorMessage}</p>
+            ) : (
+              <ul>
+                {movieList.map((movie) => (
+                  <MovieCard key={movie.id} movie={movie} />
+                ))}
+              </ul>
+            )}
+
+            {trendingMovies.length > 0 && (
+              <section className="trending">
+                <h2>Most Searched</h2>
+
+                <ul>
+                  {trendingMovies.map((movie, index) => (
+                    <li key={movie.$id}>
+                      <p>{index + 1}</p>
+                      <img src={movie.poster_url} alt={movie.title} />
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
           </section>
-        )}
-
-        <section className="all-movies mt-5">
-          <h2>All Movies</h2>
-
-          {isLoading ? (
-            <p className="text-white animate-pulse text-xl text-center">
-              Loading...
-            </p>
-          ) : errorMessage ? (
-            <p className="text-red-500">{errorMessage}</p>
-          ) : (
-            <ul>
-              {movieList.map((movie) => (
-                <MovieCard key={movie.id} movie={movie} />
-              ))}
-            </ul>
-          )}
-        </section>
+        </div>
       </div>
     </>
   );
