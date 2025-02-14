@@ -1,10 +1,10 @@
 import React from "react";
 
-function MovieCard({
-  movie: { title, vote_average, poster_path, release_date, original_language },
-}) {
+function MovieCard({ movie, onClick }) {
+  const { title, vote_average, poster_path, release_date, original_language } =
+    movie;
   return (
-    <div className="movie-card">
+    <div className="movie-card" onClick={() => onClick(movie)}>
       <img
         src={
           poster_path

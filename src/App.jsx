@@ -3,6 +3,7 @@ import "./App.css";
 import { useDebounce } from "react-use";
 import Search from "./components/Search"; // Ensure the case matches the filename
 import MovieCard from "./components/MovieCard";
+import MovieModal from "./components/MovieModal"; // Import the modal component
 import { updateSearchCount, getTrendingMovies } from "./appwrite";
 
 const API_BASE_URL = "https://api.themoviedb.org/3";
@@ -26,6 +27,10 @@ function App() {
 
   const [trendingMovies, setTrendingMovies] = useState([]);
 
+  const [sortBy, setSortBy] = useState("popularity.desc");
+  const [page, setPage] = useState(1);
+  const [selectedMovie, setSelectedMovie] = useState(null); // State for modal
+
   // This function debounces the search term and wait for 500ms after the user stops typing
   useDebounce(
     () => {
@@ -41,8 +46,10 @@ function App() {
       setErrorMessage("");
 
       const endpoint = query
-        ? `${API_BASE_URL}/search/movie?query=${encodeURIComponent(query)}`
-        : `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`;
+        ? `${API_BASE_URL}/search/movie?query=${encodeURIComponent(
+            query
+          )}&page=${page}`
+        : `${API_BASE_URL}/discover/movie?sort_by=${sortBy}&page=${page}`;
       const response = await fetch(endpoint, API_OPTIONS);
 
       if (!response.ok) {
@@ -89,20 +96,42 @@ function App() {
 
   useEffect(() => {
     fetchMovies(debouncedSearchTerm);
-  }, [debouncedSearchTerm]);
+  }, [debouncedSearchTerm, sortBy, page]);
 
   useEffect(() => {
     loadTrendingMovies();
   }, []);
 
+  useEffect(() => {
+    // Reset page to 1 on new search
+    setPage(1);
+  }, [debouncedSearchTerm]);
+
+  // Modal handler: open modal when a movie card is clicked
+  const handleMovieClick = (movie) => {
+    setSelectedMovie(movie);
+  };
+
+  // Modal handler: close modal
+  const closeModal = () => {
+    setSelectedMovie(null);
+  };
+
   return (
     <>
-      <div class="absolute inset-0 -z-10 h-full w-full items-center px-5 py-24 [background:radial-gradient(125%_125%_at_50%_10%,#000_40%,#63e_100%)]">
+      <div class="absolute inset-0 -z-10 h-screen w-full items-center px-5 py-24 [background:radial-gradient(125%_125%_at_50%_10%,#000_40%,#63e_100%)]">
         {/* <div className="pattern"></div> */}
 
         <div className="wrapper">
           <header>
-            <a href="https://aveekpatra.info" target="_blank" rel="noreferrer">
+            <a
+              href="/"
+              onClick={(e) => {
+                e.preventDefault();
+                window.location.reload();
+              }}
+              rel="noreferrer"
+            >
               <img
                 src="./logo.svg"
                 alt="Site logo"
@@ -119,12 +148,36 @@ function App() {
           <section className="all-movies">
             <div className="flex justify-between items-center mt-10">
               <h2>All Movies</h2>
+
               <span className="flex space-x-2">
-                <span className="action-btn">Upcoming</span>
-                <span className="action-btn">Latest</span>
-                <span className="action-btn">Random</span>
-                <span className="action-btn ml-5">Previous Page</span>
-                <span className="action-btn">Next Page</span>
+                {!debouncedSearchTerm && (
+                  <select
+                    className="action-btn"
+                    value={sortBy}
+                    onChange={(e) => {
+                      setSortBy(e.target.value);
+                    }}
+                  >
+                    <option value="popularity.desc">Popularity</option>
+                    <option value="vote_average.desc">Rating</option>
+                    <option value="primary_release_date.desc">
+                      Release Date
+                    </option>
+                  </select>
+                )}
+
+                <button
+                  className="action-btn ml-5"
+                  onClick={() => setPage(page > 1 ? page - 1 : 1)}
+                >
+                  Previous Page
+                </button>
+                <button
+                  className="action-btn"
+                  onClick={() => setPage(page + 1)}
+                >
+                  Next Page
+                </button>
               </span>
             </div>
 
@@ -137,7 +190,11 @@ function App() {
             ) : (
               <ul>
                 {movieList.map((movie) => (
-                  <MovieCard key={movie.id} movie={movie} />
+                  <MovieCard
+                    key={movie.id}
+                    movie={movie}
+                    onClick={handleMovieClick} // Pass handler to open modal
+                  />
                 ))}
               </ul>
             )}
@@ -150,7 +207,12 @@ function App() {
                   {trendingMovies.map((movie, index) => (
                     <li key={movie.$id}>
                       <p>{index + 1}</p>
-                      <img src={movie.poster_url} alt={movie.title} />
+                      <img
+                        src={
+                          movie.poster_url ? movie.poster_url : "no-movie.png"
+                        }
+                        alt={movie.title}
+                      />
                     </li>
                   ))}
                 </ul>
@@ -167,6 +229,10 @@ function App() {
             </p>
           </footer>
         </div>
+
+        {selectedMovie && (
+          <MovieModal movie={selectedMovie} onClose={closeModal} />
+        )}
       </div>
     </>
   );
