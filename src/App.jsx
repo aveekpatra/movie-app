@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 import { useDebounce } from "react-use";
-import Search from "./components/search";
+import Search from "./components/Search"; // Ensure the case matches the filename
 import MovieCard from "./components/MovieCard";
 import { updateSearchCount, getTrendingMovies } from "./appwrite";
 
