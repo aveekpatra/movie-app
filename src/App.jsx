@@ -3,6 +3,7 @@ import "./App.css";
 import { useDebounce } from "react-use";
 import Search from "./components/search";
 import MovieCard from "./components/MovieCard";
+import { updateSearchCount, getTrendingMovies } from "./appwrite";
 
 const API_BASE_URL = "https://api.themoviedb.org/3";
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
@@ -20,7 +21,10 @@ function App() {
   const [errorMessage, setErrorMessage] = useState("");
   const [movieList, setMovieList] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+
+  const [trendingMovies, setTrendingMovies] = useState([]);
 
   // This function debounces the search term and wait for 500ms after the user stops typing
   useDebounce(
@@ -58,6 +62,10 @@ function App() {
 
       setMovieList(data.results || []);
 
+      if (query && data.results.length > 0) {
+        await updateSearchCount(query, data.results[0]);
+      }
+
       // throw new Error("An error occurred while fetching movies.");
     } catch (error) {
       console.error(`Error fetching movies: ${error}`);
@@ -69,9 +77,23 @@ function App() {
     }
   };
 
+  const loadTrendingMovies = async () => {
+    try {
+      const movies = await getTrendingMovies();
+
+      setTrendingMovies(movies);
+    } catch (error) {
+      console.error(`Error fetching trending movies: ${error}`);
+    }
+  };
+
   useEffect(() => {
     fetchMovies(debouncedSearchTerm);
   }, [debouncedSearchTerm]);
+
+  useEffect(() => {
+    loadTrendingMovies();
+  }, []);
 
   return (
     <>
@@ -87,7 +109,22 @@ function App() {
           <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
         </header>
 
-        <section className="all-movies mt-10">
+        {trendingMovies.length > 0 && (
+          <section className="trending">
+            <h2>Trending Movies</h2>
+
+            <ul>
+              {trendingMovies.map((movie, index) => (
+                <li key={movie.$id}>
+                  <p>{index + 1}</p>
+                  <img src={movie.poster_url} alt={movie.title} />
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        <section className="all-movies mt-5">
           <h2>All Movies</h2>
 
           {isLoading ? (
