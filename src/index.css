@@ -102,7 +102,7 @@
   }
 
   .movie-card {
-    @apply bg-dark-100 p-5 rounded-2xl shadow-inner shadow-light-100/10;
+    @apply bg-dark-100 p-5 rounded-2xl shadow-inner shadow-light-100/10 ring-purple-50/90 hover:shadow-purple-800 duration-300 ease-in-out transition-all;
 
     & img {
       @apply rounded-lg h-auto w-full;

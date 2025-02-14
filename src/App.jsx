@@ -102,7 +102,13 @@ function App() {
 
         <div className="wrapper">
           <header>
-            {/* <img src="./hero.png" alt="Hero Banner" className="max-w-2xs" /> */}
+            <a href="https://aveekpatra.info" target="_blank" rel="noreferrer">
+              <img
+                src="./logo.svg"
+                alt="Site logo"
+                className="w-20 -translate-y-10"
+              />
+            </a>
             <h1>
               Seamlessly Find <span className="text-gradient">Movies</span> That
               Match Your Taste
@@ -142,6 +148,15 @@ function App() {
               </section>
             )}
           </section>
+
+          <footer>
+            <p className="text-white text-center mt-10 text-xl font-semibold">
+              Made with 🩷 by <br />{" "}
+              <a className="text-gradient" href="https://aveekpatra.info">
+                Aveek Patra
+              </a>
+            </p>
+          </footer>
         </div>
       </div>
     </>
