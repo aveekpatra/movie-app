@@ -4,8 +4,8 @@ const MovieModal = ({ movie, onClose }) => {
   if (!movie) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg relative max-w-lg w-full overflow-y-auto max-h-[90vh]">
+    <div className="fixed inset-0 bg-black/30 backdrop-blur-lg bg-opacity-50 flex items-center justify-center z-50" onClick={onClose}>
+      <div className="bg-white/60 p-6 rounded-lg relative max-w-lg w-full overflow-y-auto max-h-[90vh]">
         <button
           onClick={onClose}
           className="absolute top-2 right-2 bg-gray-200 rounded-full px-3 py-1"
