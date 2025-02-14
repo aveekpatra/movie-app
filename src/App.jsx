@@ -116,8 +116,17 @@ function App() {
             <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
           </header>
 
-          <section className="all-movies mt-5">
-            <h2>All Movies</h2>
+          <section className="all-movies">
+            <div className="flex justify-between items-center mt-10">
+              <h2>All Movies</h2>
+              <span className="flex space-x-2">
+                <span className="action-btn">Upcoming</span>
+                <span className="action-btn">Latest</span>
+                <span className="action-btn">Random</span>
+                <span className="action-btn ml-5">Previous Page</span>
+                <span className="action-btn">Next Page</span>
+              </span>
+            </div>
 
             {isLoading ? (
               <p className="text-white animate-pulse text-xl text-center">
