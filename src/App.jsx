@@ -119,7 +119,7 @@ function App() {
 
   return (
     <>
-      <div class=" inset-0 -z-10 h-screen w-full items-center px-5 py-24 [background:radial-gradient(125%_125%_at_50%_10%,#000_40%,#63e_100%)]">
+      <div class="inset-0 -z-10 h-screen w-full items-center px-5 py-24 [background:radial-gradient(125%_125%_at_50%_10%,#000_40%,#63e_100%)]">
         {/* <div className="pattern"></div> */}
 
         <div className="wrapper">
@@ -146,8 +146,8 @@ function App() {
           </header>
 
           <section className="all-movies">
-            <div className="flex justify-between items-center mt-10">
-              <h2>All Movies</h2>
+            <div className="flex flex-col md:flex-row justify-between items-center mt-10">
+              <h2 className="mb-5">All Movies</h2>
 
               <span className="flex space-x-2">
                 {!debouncedSearchTerm && (
