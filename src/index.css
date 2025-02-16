@@ -79,7 +79,7 @@
   }
 
   .search {
-    @apply w-full bg-light-100/20 backdrop-blur-md px-4 py-3 rounded-lg mt-10 max-w-3xl mx-auto border border-white/20;
+    @apply w-full bg-light-100/20 backdrop-blur-md px-4 py-2 rounded-lg mt-10 max-w-3xl mx-auto border border-white/20;
 
     & div {
       @apply relative flex items-center;
@@ -95,7 +95,7 @@
   }
 
   .action-btn {
-    @apply p-2 bg-white/20 backdrop-blur-md text-white rounded border-white/10 border cursor-pointer text-sm md:text-base;
+    @apply p-2 bg-white/20 backdrop-blur-md text-white rounded border-white/10 border cursor-pointer text-sm md:text-base px-2;
   }
 
   .all-movies {
