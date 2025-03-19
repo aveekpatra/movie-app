@@ -21,6 +21,7 @@ const API_OPTIONS = {
 
 function App() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [searchType, setSearchType] = useState("movie");
   const [errorMessage, setErrorMessage] = useState("");
   const [movieList, setMovieList] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -40,6 +41,34 @@ function App() {
     includeAdult: false,
   });
   const [searchHistory, setSearchHistory] = useState([]);
+  const [showSearchHistory, setShowSearchHistory] = useState(false);
+
+  // Handle URL parameters
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const query = params.get("query");
+    const type = params.get("searchType");
+
+    if (query) {
+      setSearchTerm(query);
+      setDebouncedSearchTerm(query);
+    }
+    if (type) {
+      setSearchType(type);
+    }
+  }, []);
+
+  // Update URL when search changes
+  useEffect(() => {
+    if (debouncedSearchTerm) {
+      const params = new URLSearchParams(window.location.search);
+      params.set("query", debouncedSearchTerm);
+      params.set("searchType", searchType);
+      window.history.replaceState({}, "", `?${params.toString()}`);
+    } else {
+      window.history.replaceState({}, "", "/");
+    }
+  }, [debouncedSearchTerm, searchType]);
 
   // Load saved preferences and search history from localStorage
   useEffect(() => {
@@ -90,35 +119,59 @@ function App() {
         params.append("with_original_language", currentFilters.language);
       }
 
-      const endpoint = query
-        ? `${API_BASE_URL}/search/movie?query=${encodeURIComponent(
+      let endpoint;
+      if (searchType === "actor") {
+        // Search for actor's movies
+        const personResponse = await fetch(
+          `${API_BASE_URL}/search/person?query=${encodeURIComponent(
             query
-          )}&${params}`
-        : `${API_BASE_URL}/discover/movie?${params}`;
+          )}&page=1`,
+          API_OPTIONS
+        );
+        const personData = await personResponse.json();
+
+        if (personData.results.length === 0) {
+          setErrorMessage("No actors found.");
+          setMovieList([]);
+          return;
+        }
+
+        const actorId = personData.results[0].id;
+        endpoint = `${API_BASE_URL}/person/${actorId}/movie_credits`;
+      } else {
+        // Regular movie search
+        endpoint = query
+          ? `${API_BASE_URL}/search/movie?query=${encodeURIComponent(
+              query
+            )}&${params}`
+          : `${API_BASE_URL}/discover/movie?${params}`;
+      }
 
       const response = await fetch(endpoint, API_OPTIONS);
 
       if (!response.ok) {
-        throw new Error("An error occurred while fetching movies.");
+        throw new Error("An error occurred while fetching data.");
       }
 
       const data = await response.json();
-      // console.log(data);
 
       if (data.Response === "False") {
-        setErrorMessage(
-          data.Error || "An error occurred while fetching movies."
-        );
+        setErrorMessage(data.Error || "An error occurred while fetching data.");
         setMovieList([]);
         return;
       }
 
-      setMovieList(data.results || []);
+      // Handle different response formats
+      const movies =
+        searchType === "actor" ? data.cast || [] : data.results || [];
+
+      setMovieList(movies);
 
       // Update search history if this is a search query
-      if (query && data.results.length > 0) {
+      if (query && movies.length > 0) {
         const newHistoryItem = {
           query,
+          type: searchType,
           filters: currentFilters,
           timestamp: new Date().toISOString(),
         };
@@ -128,14 +181,15 @@ function App() {
           "movieAppSearchHistory",
           JSON.stringify(updatedHistory)
         );
-        await updateSearchCount(query, data.results[0]);
-      }
 
-      // throw new Error("An error occurred while fetching movies.");
+        if (searchType === "movie") {
+          await updateSearchCount(query, movies[0]);
+        }
+      }
     } catch (error) {
-      console.error(`Error fetching movies: ${error}`);
+      console.error(`Error fetching data: ${error}`);
       setErrorMessage(
-        "An error occurred while fetching movies. Please try again."
+        "An error occurred while fetching data. Please try again."
       );
     } finally {
       setIsLoading(false);
@@ -195,7 +249,7 @@ function App() {
         {/* <div className="pattern"></div> */}
 
         <div className="">
-            <div className="absolute inset-0 bg-gradient-to-b from-black/50 to-transparent z-0"></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-black/50 to-transparent z-0"></div>
           <header className="relative min-h-[60vh] flex flex-col items-center justify-center text-center px-4 py-12 overflow-hidden">
             {/* Background gradient effect */}
 
@@ -242,34 +296,40 @@ function App() {
 
               {/* Search and Filters */}
               <div className="w-full max-w-2xl mx-auto space-y-4">
-                <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+                <Search
+                  searchTerm={searchTerm}
+                  setSearchTerm={setSearchTerm}
+                  onSearchTypeChange={setSearchType}
+                />
 
                 {/* Advanced Filters Toggle */}
-                <button
-                  onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                  className="w-full md:w-auto px-6 py-3 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-all duration-200 backdrop-blur-sm border border-white/10 flex items-center justify-center gap-2 group"
-                >
-                  <span className="font-medium">
-                    {showAdvancedFilters
-                      ? "Hide Filters"
-                      : "Show Advanced Filters"}
-                  </span>
-                  <svg
-                    className={`w-5 h-5 transition-transform duration-200 ${
-                      showAdvancedFilters ? "rotate-180" : ""
-                    } group-hover:translate-y-0.5`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+                <div className="flex justify-center">
+                  <button
+                    onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                    className="px-6 py-3 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-all duration-200 backdrop-blur-sm border border-white/10 flex items-center justify-center gap-2 group"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
-                </button>
+                    <span className="font-medium">
+                      {showAdvancedFilters
+                        ? "Hide Filters"
+                        : "Show Advanced Filters"}
+                    </span>
+                    <svg
+                      className={`w-5 h-5 transition-transform duration-200 ${
+                        showAdvancedFilters ? "rotate-180" : ""
+                      } group-hover:translate-y-0.5`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </button>
+                </div>
               </div>
 
               {/* Quick Stats */}
@@ -342,11 +402,40 @@ function App() {
 
             {searchHistory.length > 0 && !debouncedSearchTerm && (
               <div className="mb-6">
-                <SearchHistory
-                  history={searchHistory}
-                  onSelectSearch={handleSearchHistorySelect}
-                  onClearHistory={clearSearchHistory}
-                />
+                <div className="flex justify-between items-center mb-4">
+                  <button
+                    onClick={() => setShowSearchHistory(!showSearchHistory)}
+                    className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-all duration-200 backdrop-blur-sm border border-white/10 flex items-center justify-center gap-2 group"
+                  >
+                    <span className="font-medium">
+                      {showSearchHistory
+                        ? "Hide Search History"
+                        : "Show Search History"}
+                    </span>
+                    <svg
+                      className={`w-5 h-5 transition-transform duration-200 ${
+                        showSearchHistory ? "rotate-180" : ""
+                      } group-hover:translate-y-0.5`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </button>
+                </div>
+                {showSearchHistory && (
+                  <SearchHistory
+                    history={searchHistory}
+                    onSelectSearch={handleSearchHistorySelect}
+                    onClearHistory={clearSearchHistory}
+                  />
+                )}
               </div>
             )}
 

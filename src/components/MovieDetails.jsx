@@ -17,8 +17,10 @@ const MovieDetails = ({ movieId }) => {
   const [videos, setVideos] = useState([]);
   const [similarMovies, setSimilarMovies] = useState([]);
   const [externalIds, setExternalIds] = useState(null);
+  const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(null);
 
   useEffect(() => {
     const fetchMovieDetails = async () => {
@@ -63,6 +65,14 @@ const MovieDetails = ({ movieId }) => {
         );
         const externalData = await externalResponse.json();
         setExternalIds(externalData);
+
+        // Fetch images
+        const imagesResponse = await fetch(
+          `${API_BASE_URL}/movie/${movieId}/images`,
+          API_OPTIONS
+        );
+        const imagesData = await imagesResponse.json();
+        setImages(imagesData.backdrops || []);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -111,6 +121,43 @@ const MovieDetails = ({ movieId }) => {
         </div>
       </div>
 
+      {/* Screenshots Gallery */}
+      {images.length > 0 && (
+        <div className="bg-white/80 p-4 rounded-lg">
+          <h3 className="text-xl font-bold mb-4">Screenshots</h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {images.slice(0, 8).map((image, index) => (
+              <div
+                key={index}
+                className="relative group cursor-pointer overflow-hidden rounded-lg"
+                onClick={() => setSelectedImage(image)}
+              >
+                <img
+                  src={`https://image.tmdb.org/t/p/w500${image.file_path}`}
+                  alt={`Screenshot ${index + 1}`}
+                  className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                  <svg
+                    className="w-8 h-8 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Cast & Crew */}
       {credits && (
         <div className="bg-white/80 p-4 rounded-lg">
@@ -126,7 +173,16 @@ const MovieDetails = ({ movieId }) => {
                   />
                 )}
                 <div>
-                  <p className="font-semibold">{actor.name}</p>
+                  <button
+                    onClick={() =>
+                      (window.location.href = `/?searchType=actor&query=${encodeURIComponent(
+                        actor.name
+                      )}`)
+                    }
+                    className="font-semibold text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                  >
+                    {actor.name}
+                  </button>
                   <p className="text-sm text-gray-600">{actor.character}</p>
                 </div>
               </div>
@@ -172,6 +228,40 @@ const MovieDetails = ({ movieId }) => {
                 <p className="text-sm font-semibold">{movie.title}</p>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Image Modal */}
+      {selectedImage && (
+        <div
+          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+          onClick={() => setSelectedImage(null)}
+        >
+          <div className="relative max-w-4xl w-full">
+            <img
+              src={`https://image.tmdb.org/t/p/original${selectedImage.file_path}`}
+              alt="Movie Screenshot"
+              className="w-full rounded-lg"
+            />
+            <button
+              onClick={() => setSelectedImage(null)}
+              className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 text-white rounded-full p-2 transition-colors"
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
           </div>
         </div>
       )}
