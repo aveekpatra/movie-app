@@ -174,11 +174,14 @@ const MovieDetails = ({ movieId }) => {
                 )}
                 <div>
                   <button
-                    onClick={() =>
-                      (window.location.href = `/?searchType=actor&query=${encodeURIComponent(
-                        actor.name
-                      )}`)
-                    }
+                    onClick={() => {
+                      const searchParams = new URLSearchParams(
+                        window.location.search
+                      );
+                      searchParams.set("query", actor.name);
+                      searchParams.set("searchType", "actor");
+                      window.location.href = `/?${searchParams.toString()}`;
+                    }}
                     className="font-semibold text-blue-600 hover:text-blue-800 hover:underline transition-colors"
                   >
                     {actor.name}
