@@ -85,6 +85,40 @@ const MovieDetails = ({ movieId }) => {
     }
   }, [movieId]);
 
+  // Add keyboard navigation handler
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (!selectedImage) return;
+
+      switch (e.key) {
+        case "Escape":
+          setSelectedImage(null);
+          break;
+        case "ArrowLeft":
+          const currentIndex = images.findIndex(
+            (img) => img.file_path === selectedImage.file_path
+          );
+          if (currentIndex > 0) {
+            setSelectedImage(images[currentIndex - 1]);
+          }
+          break;
+        case "ArrowRight":
+          const currentIdx = images.findIndex(
+            (img) => img.file_path === selectedImage.file_path
+          );
+          if (currentIdx < images.length - 1) {
+            setSelectedImage(images[currentIdx + 1]);
+          }
+          break;
+        default:
+          break;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedImage, images]);
+
   if (loading) return <div className="text-center py-4">Loading...</div>;
   if (error)
     return <div className="text-red-500 text-center py-4">{error}</div>;
@@ -262,6 +296,71 @@ const MovieDetails = ({ movieId }) => {
                   strokeLinejoin="round"
                   strokeWidth={2}
                   d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+
+            {/* Navigation Buttons */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                const currentIndex = images.findIndex(
+                  (img) => img.file_path === selectedImage.file_path
+                );
+                if (currentIndex > 0) {
+                  setSelectedImage(images[currentIndex - 1]);
+                }
+              }}
+              className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 text-white rounded-full p-2 transition-colors"
+              disabled={
+                images.findIndex(
+                  (img) => img.file_path === selectedImage.file_path
+                ) === 0
+              }
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
+              </svg>
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                const currentIndex = images.findIndex(
+                  (img) => img.file_path === selectedImage.file_path
+                );
+                if (currentIndex < images.length - 1) {
+                  setSelectedImage(images[currentIndex + 1]);
+                }
+              }}
+              className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 text-white rounded-full p-2 transition-colors"
+              disabled={
+                images.findIndex(
+                  (img) => img.file_path === selectedImage.file_path
+                ) ===
+                images.length - 1
+              }
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
                 />
               </svg>
             </button>
