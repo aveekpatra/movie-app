@@ -194,53 +194,120 @@ function App() {
       <div>
         {/* <div className="pattern"></div> */}
 
-        <div className="wrapper">
-          <header>
-            <a
-              href="/"
-              onClick={(e) => {
-                e.preventDefault();
-                window.location.reload();
-              }}
-              rel="noreferrer"
-            >
-              <img
-                src="./logo.svg"
-                alt="Site logo"
-                className="w-20 -translate-y-10"
-              />
-            </a>
-            <h1>
-              Seamlessly Find <span className="text-gradient">Movies</span> That
-              Match Your Vibes
-            </h1>
-            <div className="w-full max-w-2xl mx-auto">
-              <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-              <button
-                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                className="mt-3 px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-all duration-200 backdrop-blur-sm border border-white/10 flex items-center justify-center gap-2"
-              >
-                <span>
-                  {showAdvancedFilters
-                    ? "Hide Filters"
-                    : "Show Advanced Filters"}
-                </span>
-                <svg
-                  className={`w-4 h-4 transition-transform duration-200 ${
-                    showAdvancedFilters ? "rotate-180" : ""
-                  }`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+        <div className="">
+            <div className="absolute inset-0 bg-gradient-to-b from-black/50 to-transparent z-0"></div>
+          <header className="relative min-h-[60vh] flex flex-col items-center justify-center text-center px-4 py-12 overflow-hidden">
+            {/* Background gradient effect */}
+
+            {/* Animated background pattern */}
+            <div className="absolute inset-0 opacity-10">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-pink-500/20 via-purple-500/20 to-transparent animate-pulse"></div>
+            </div>
+
+            {/* Content */}
+            <div className="relative z-10 w-full max-w-4xl mx-auto">
+              {/* Logo */}
+              <div className="mb-8 transform hover:scale-105 transition-transform duration-300">
+                <a
+                  href="/"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    window.location.reload();
+                  }}
+                  rel="noreferrer"
+                  className="inline-block"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
+                  <img
+                    src="./logo.svg"
+                    alt="Site logo"
+                    className="w-24 md:w-32 mx-auto"
                   />
-                </svg>
-              </button>
+                </a>
+              </div>
+
+              {/* Main heading */}
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
+                Seamlessly Find{" "}
+                <span className="text-gradient bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-purple-500">
+                  Movies
+                </span>{" "}
+                That Match Your Vibes
+              </h1>
+
+              {/* Subheading */}
+              <p className="text-gray-300 text-lg md:text-xl mb-8 max-w-2xl mx-auto">
+                Discover your next favorite film with our advanced search and
+                personalized recommendations
+              </p>
+
+              {/* Search and Filters */}
+              <div className="w-full max-w-2xl mx-auto space-y-4">
+                <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+
+                {/* Advanced Filters Toggle */}
+                <button
+                  onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                  className="w-full md:w-auto px-6 py-3 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-all duration-200 backdrop-blur-sm border border-white/10 flex items-center justify-center gap-2 group"
+                >
+                  <span className="font-medium">
+                    {showAdvancedFilters
+                      ? "Hide Filters"
+                      : "Show Advanced Filters"}
+                  </span>
+                  <svg
+                    className={`w-5 h-5 transition-transform duration-200 ${
+                      showAdvancedFilters ? "rotate-180" : ""
+                    } group-hover:translate-y-0.5`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Quick Stats */}
+              <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4 text-white/80">
+                <div className="bg-white/5 backdrop-blur-sm rounded-lg p-4">
+                  <div className="text-2xl font-bold text-gradient">1000+</div>
+                  <div className="text-sm">Movies</div>
+                </div>
+                <div className="bg-white/5 backdrop-blur-sm rounded-lg p-4">
+                  <div className="text-2xl font-bold text-gradient">50+</div>
+                  <div className="text-sm">Genres</div>
+                </div>
+                <div className="bg-white/5 backdrop-blur-sm rounded-lg p-4">
+                  <div className="text-2xl font-bold text-gradient">24/7</div>
+                  <div className="text-sm">Available</div>
+                </div>
+                <div className="bg-white/5 backdrop-blur-sm rounded-lg p-4">
+                  <div className="text-2xl font-bold text-gradient">100%</div>
+                  <div className="text-sm">Free</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Scroll indicator */}
+            <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+              <svg
+                className="w-6 h-6 text-white/50"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 14l-7 7m0 0l-7-7m7 7V3"
+                />
+              </svg>
             </div>
           </header>
 
