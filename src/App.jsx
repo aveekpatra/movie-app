@@ -4,7 +4,9 @@ import { useDebounce } from "react-use";
 import Search from "./components/Search"; // Ensure the case matches the filename
 import MovieCard from "./components/MovieCard";
 import MovieModal from "./components/MovieModal"; // Import the modal component
-import { updateSearchCount, getTrendingMovies } from "./appwrite";
+import AdvancedFilters from "./components/AdvancedFilters";
+import SearchHistory from "./components/SearchHistory";
+import { getTrendingMovies, updateSearchCount } from "./appwrite";
 
 const API_BASE_URL = "https://api.themoviedb.org/3";
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
@@ -27,9 +29,35 @@ function App() {
 
   const [trendingMovies, setTrendingMovies] = useState([]);
 
-  const [sortBy, setSortBy] = useState("popularity.desc");
   const [page, setPage] = useState(1);
   const [selectedMovie, setSelectedMovie] = useState(null); // State for modal
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [filters, setFilters] = useState({
+    genres: [],
+    year: "",
+    language: "",
+    sortBy: "popularity.desc",
+    includeAdult: false,
+  });
+  const [searchHistory, setSearchHistory] = useState([]);
+
+  // Load saved preferences and search history from localStorage
+  useEffect(() => {
+    const savedPreferences = localStorage.getItem("movieAppPreferences");
+    const savedHistory = localStorage.getItem("movieAppSearchHistory");
+
+    if (savedPreferences) {
+      setFilters(JSON.parse(savedPreferences));
+    }
+    if (savedHistory) {
+      setSearchHistory(JSON.parse(savedHistory));
+    }
+  }, []);
+
+  // Save preferences to localStorage when they change
+  useEffect(() => {
+    localStorage.setItem("movieAppPreferences", JSON.stringify(filters));
+  }, [filters]);
 
   // This function debounces the search term and wait for 500ms after the user stops typing
   useDebounce(
@@ -40,16 +68,34 @@ function App() {
     [searchTerm]
   );
 
-  const fetchMovies = async (query = "") => {
+  const fetchMovies = async (query = "", currentFilters = filters) => {
     try {
       setIsLoading(true);
       setErrorMessage("");
 
+      // Build query parameters
+      const params = new URLSearchParams({
+        page: page.toString(),
+        sort_by: currentFilters.sortBy,
+        include_adult: currentFilters.includeAdult.toString(),
+      });
+
+      if (currentFilters.genres.length > 0) {
+        params.append("with_genres", currentFilters.genres.join(","));
+      }
+      if (currentFilters.year) {
+        params.append("primary_release_year", currentFilters.year);
+      }
+      if (currentFilters.language) {
+        params.append("with_original_language", currentFilters.language);
+      }
+
       const endpoint = query
         ? `${API_BASE_URL}/search/movie?query=${encodeURIComponent(
             query
-          )}&page=${page}`
-        : `${API_BASE_URL}/discover/movie?sort_by=${sortBy}&page=${page}`;
+          )}&${params}`
+        : `${API_BASE_URL}/discover/movie?${params}`;
+
       const response = await fetch(endpoint, API_OPTIONS);
 
       if (!response.ok) {
@@ -69,7 +115,19 @@ function App() {
 
       setMovieList(data.results || []);
 
+      // Update search history if this is a search query
       if (query && data.results.length > 0) {
+        const newHistoryItem = {
+          query,
+          filters: currentFilters,
+          timestamp: new Date().toISOString(),
+        };
+        const updatedHistory = [newHistoryItem, ...searchHistory].slice(0, 10);
+        setSearchHistory(updatedHistory);
+        localStorage.setItem(
+          "movieAppSearchHistory",
+          JSON.stringify(updatedHistory)
+        );
         await updateSearchCount(query, data.results[0]);
       }
 
@@ -96,7 +154,7 @@ function App() {
 
   useEffect(() => {
     fetchMovies(debouncedSearchTerm);
-  }, [debouncedSearchTerm, sortBy, page]);
+  }, [debouncedSearchTerm, filters, page]);
 
   useEffect(() => {
     loadTrendingMovies();
@@ -105,7 +163,7 @@ function App() {
   useEffect(() => {
     // Reset page to 1 on new search
     setPage(1);
-  }, [debouncedSearchTerm]);
+  }, [debouncedSearchTerm, filters]);
 
   // Modal handler: open modal when a movie card is clicked
   const handleMovieClick = (movie) => {
@@ -117,9 +175,23 @@ function App() {
     setSelectedMovie(null);
   };
 
+  const handleFilterChange = (newFilters) => {
+    setFilters(newFilters);
+  };
+
+  const handleSearchHistorySelect = (historyItem) => {
+    setSearchTerm(historyItem.query);
+    setFilters(historyItem.filters);
+  };
+
+  const clearSearchHistory = () => {
+    setSearchHistory([]);
+    localStorage.removeItem("movieAppSearchHistory");
+  };
+
   return (
     <>
-      <div class="">
+      <div>
         {/* <div className="pattern"></div> */}
 
         <div className="wrapper">
@@ -142,30 +214,41 @@ function App() {
               Seamlessly Find <span className="text-gradient">Movies</span> That
               Match Your Vibes
             </h1>
-            <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+            <div className="w-full max-w-2xl mx-auto">
+              <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+              <button
+                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                className="mt-3 px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-all duration-200 backdrop-blur-sm border border-white/10 flex items-center justify-center gap-2"
+              >
+                <span>
+                  {showAdvancedFilters
+                    ? "Hide Filters"
+                    : "Show Advanced Filters"}
+                </span>
+                <svg
+                  className={`w-4 h-4 transition-transform duration-200 ${
+                    showAdvancedFilters ? "rotate-180" : ""
+                  }`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </button>
+            </div>
           </header>
 
           <section className="all-movies">
             <div className="flex flex-col md:flex-row justify-between items-center mt-10">
               <h2 className="mb-5">All Movies</h2>
 
-              <span className="flex space-x-2">
-                {!debouncedSearchTerm && (
-                  <select
-                    className="action-btn"
-                    value={sortBy}
-                    onChange={(e) => {
-                      setSortBy(e.target.value);
-                    }}
-                  >
-                    <option value="popularity.desc">Popularity</option>
-                    <option value="vote_average.desc">Rating</option>
-                    <option value="primary_release_date.desc">
-                      Release Date
-                    </option>
-                  </select>
-                )}
-
+              <div className="flex space-x-2">
                 <button
                   className="action-btn ml-5"
                   onClick={() => setPage(page > 1 ? page - 1 : 1)}
@@ -178,8 +261,27 @@ function App() {
                 >
                   Next Page
                 </button>
-              </span>
+              </div>
             </div>
+
+            {showAdvancedFilters && (
+              <div className="mb-6">
+                <AdvancedFilters
+                  onFilterChange={handleFilterChange}
+                  savedPreferences={filters}
+                />
+              </div>
+            )}
+
+            {searchHistory.length > 0 && !debouncedSearchTerm && (
+              <div className="mb-6">
+                <SearchHistory
+                  history={searchHistory}
+                  onSelectSearch={handleSearchHistorySelect}
+                  onClearHistory={clearSearchHistory}
+                />
+              </div>
+            )}
 
             {isLoading ? (
               <p className="text-white animate-pulse text-xl text-center">
